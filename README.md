@@ -40,14 +40,14 @@ Every language before this made a tradeoff. Python is readable but slow. C++ is 
 
 **Linux / macOS**
 ```bash
-git clone https://github.com/yourname/enhanced
+git clone https://github.com/ayredev/Enhanced
 cd enhanced
 bash install.sh
 ```
 
 **Windows**
 ```powershell
-git clone https://github.com/yourname/enhanced
+git clone https://github.com/ayredev/Enhanced
 cd enhanced
 .\installer\install.ps1
 ```
