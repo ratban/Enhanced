@@ -41,6 +41,10 @@ class Lexer:
                 tokens.append(Token("PUNCTUATION", char, self.line))
                 self.pos += 1
                 continue
+            
+            # Reject square brackets - they are no longer supported
+            if char in {'[', ']'}:
+                raise Exception(f"Square brackets are not supported. Use 'in' syntax instead. Line {self.line}")
 
             if char.isdigit():
                 start = self.pos
