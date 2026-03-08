@@ -20,6 +20,10 @@ class Pipeline:
         if not os.path.exists(source_path):
             raise PipelineError(f"I couldn't find the file '{source_path}'")
         
+        basename = os.path.splitext(os.path.basename(source_path))[0]
+        dir_path = os.path.dirname(os.path.abspath(source_path))
+        ll_path = os.path.join(dir_path, f"{basename}.ll")
+
         try:
             with open(source_path, 'r', encoding='utf-8') as f:
                 source = f.read()
@@ -54,10 +58,6 @@ class Pipeline:
             else:
                 generator = IRGenerator()
             ir_str = generator.generate(typed_ast)
-            
-            basename = os.path.splitext(os.path.basename(source_path))[0]
-            dir_path = os.path.dirname(os.path.abspath(source_path))
-            ll_path = os.path.join(dir_path, f"{basename}.ll")
             
             with open(ll_path, 'w', encoding='utf-8') as f:
                 f.write(ir_str)
