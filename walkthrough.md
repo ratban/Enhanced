@@ -229,7 +229,8 @@ The next logical step is to target WebAssembly. This would involve:
 | VIII | `test_lsp.py` | 18 | 18 |
 | IX | `test_types.py` | 27 | 27 |
 | XI | `test_wasm.py` | 18 | 15 |
-| **Total** | | **110** | **104** |
+| XII | `test_ui.py` | 3 | 3 |
+| **Total** | | **113** | **107** |
 
 ## 14. Phase XI — WebAssembly Target
 
@@ -250,3 +251,28 @@ Enhanced now supports WebAssembly as a compilation target, allowing .en files to
   - **Cross-Platform**: The WASM target works anywhere LLVM's `clang` is available.
 
 - **Test Results**: 15/18 tests passing (3 skipped due to missing `clang` dependency in the current environment).
+
+## 15. Phase XII — UI Framework & Grammar Polish
+
+Enhanced is now the ultimate language for the Web, featuring a native UI framework and a completely bracket-less grammar.
+
+- **Grammar Polish (The "Zero Bracket" Milestone)**:
+  - Square brackets `[]` have been completely removed from the language.
+  - **Map Access**: Use `"Alice" in scores` to get a value.
+  - **Map Assignment**: Use `set "Alice" in scores to 95` to set a value.
+
+- **UI Framework**:
+  - New English verbs for building interfaces:
+    - `create a button called my_button.`
+    - `set my_button's text to "Click Me".`
+    - `when my_button is clicked: ...`
+    - `add my_button to the screen.`
+  - Supported elements: `button`, `text`, `input`, `box`.
+  - Supported events: `clicked`, `hovered`, `changed`.
+
+- **WASM & DOM Interop**:
+  - The WASM codegen and browser runtime have been updated to support native DOM elements.
+  - A basic reactivity layer ensures UI updates when variables change.
+
+- **Test Results**: 3/3 tests passing in `test_ui.py`.
+

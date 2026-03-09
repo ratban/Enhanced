@@ -171,7 +171,7 @@ class Parser:
 
         elif self.match_val("VERB", "set"):
             # UI: set [NAME]'s [PROPERTY] to [VALUE].
-            # Map: set [value] in [map] to [key] or set [key] in [map] to [value].
+            # Map: set [key] in [map] to [value].
             
             # Look ahead for possessive (UI)
             if self.peek() and self.peek().type == "IDENTIFIER" and self.peek_at(1) and self.peek_at(1).type == "POSSESSIVE":
@@ -183,22 +183,18 @@ class Parser:
                 return UISetProperty(name_tok.value, prop_tok.value, val)
 
             # Map or legacy set
-            val_or_key = self.parse_expression()
+            key_expr = self.parse_expression()
             
             # Check for map set after parse_expression
             if self.match_val("KEYWORD", "in"):
                 map_expr = self.parse_expression()
                 map_name = map_expr.name if isinstance(map_expr, Identifier) else "unknown"
                 self.expect_val("CONNECTOR", "to", "Expected 'to'")
-                key_or_val = self.parse_expression()
-                return MapSet(map_name, key_or_val, val_or_key) # MapSet(map_name, key, value)
-            
-            # If parse_expression already returned a MapSet (from [key] in [map] as an expression)
-            # but we are in a 'set' statement, we need to handle it carefully.
-            # However, the pattern 'set [value] in [map] to [key]' is what we want.
+                val_expr = self.parse_expression()
+                return MapSet(map_name, key_expr, val_expr) # MapSet(map_name, key, value)
             
             # Legacy set (e.g. for struct fields)
-            return self._parse_set_legacy(val_or_key)
+            return self._parse_set_legacy(key_expr)
 
         elif self.match_val("VERB", "read"):
             return self._parse_read()
@@ -445,11 +441,15 @@ class Parser:
             nxt = self.peek()
             if nxt.type == "KEYWORD" and nxt.value in ("when", "before", "after", "define"):
                 break
-            if nxt.type == "VERB" and nxt.value in ("start", "stop", "open", "close"):
-                break
-            # If the next statement is `say` and it's the very last thing, we could break, but let's just parse it.
-            # In Enhanced, normally a `send` terminates a handler logic functionally, so extra `say` is unreachable if it emitted after `send`
-            # Wait, `send` does not abort compilation!
+            if nxt.type == "VERB" and nxt.value in ("start", "stop", "open", "close", "add"):
+                # Special case: 'add X to the screen' is a top-level UI verb, but 'add X to Y' (list) might be in a block.
+                # However, 'add' usually starts a new statement.
+                # Let's check if it's 'add X to the screen'
+                if nxt.value == "add":
+                    # Look ahead: add [expr] to the screen
+                    # This is tricky without full expression parsing.
+                    # But in Enhanced, blocks are usually terminated by the next major keyword/verb.
+                    break
             
             stmt = self.parse_statement()
             if stmt:

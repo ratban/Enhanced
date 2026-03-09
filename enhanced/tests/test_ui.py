@@ -24,9 +24,13 @@ class TestUI(unittest.TestCase):
         '''
         tokens = Lexer(code).tokenize()
         ast = Parser(tokens).parse()
-        for stmt in ast.statements: print(type(stmt))
         SemanticAnalyzer().analyze(ast)
         self.assertEqual(len(ast.statements), 5)
+        self.assertIsInstance(ast.statements[0], UICreateElement)
+        self.assertIsInstance(ast.statements[1], UISetProperty)
+        self.assertIsInstance(ast.statements[2], UISetProperty)
+        self.assertIsInstance(ast.statements[3], UIEventHandler)
+        self.assertIsInstance(ast.statements[4], UIAddToScreen)
 
     def test_wasm_ui_codegen(self):
         code = 'create a button called btn. add btn to the screen.'

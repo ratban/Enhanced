@@ -514,10 +514,23 @@ class SemanticAnalyzer:
 
     def visit_UISetProperty(self, node):
         try:
-            self.symtab.lookup(node.element_name, node.line)
+            sym = self.symtab.lookup(node.element_name, node.line)
         except SymbolTableError as e:
             raise SemanticError(str(e))
-        self.visit(node.value)
+        
+        if sym["type"] != "ui_element":
+            raise SemanticError(f"I found a problem on line {node.line}: '{node.element_name}' is not a UI element.")
+
+        value_type = self.visit(node.value)
+
+        if node.property_name == "text":
+            if value_type != TypeSystem.STR:
+                raise SemanticError(f"I found a problem on line {node.line}: UI element text can only be set to text values.")
+        elif node.property_name == "color":
+            if value_type != TypeSystem.STR:
+                raise SemanticError(f"I found a problem on line {node.line}: UI element color can only be set to text values (e.g., '#RRGGBB' or 'red').")
+        else:
+            raise SemanticError(f"I found a problem on line {node.line}: Unsupported UI element property '{node.property_name}'.")
 
     def visit_UIEventHandler(self, node):
         try:
