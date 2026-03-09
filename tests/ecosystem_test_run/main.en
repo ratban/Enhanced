@@ -1,0 +1,4 @@
+use the "math_lib" package.
+
+the number x is math_lib's add with 40 and 2.
+say "Answer is: " then x.

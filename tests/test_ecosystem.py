@@ -27,8 +27,8 @@ use the "math_lib" package version "1.0.0".
     # 2. Create app code
     app_code = """use the "math_lib" package.
 
-the number result is math_lib's add with 40 and 2.
-say "Answer is: " then result.
+the number x is math_lib's add with 40 and 2.
+say "Answer is: " then x.
 """
     main_en = os.path.join(test_dir, "main.en")
     with open(main_en, "w") as f:

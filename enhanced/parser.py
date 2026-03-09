@@ -1171,6 +1171,15 @@ class Parser:
     def _parse_primary(self):
         return self._parse_primary_inner()
 
+    def _parse_args(self):
+        """Parse arguments: 'with X and Y'."""
+        args = []
+        if self.match_val("CONNECTOR", "with"):
+            args.append(self.parse_expression())
+            while self.match_val("CONNECTOR", "and"):
+                args.append(self.parse_expression())
+        return args
+
     def _parse_primary_inner(self):
         tok = self.peek()
         if not tok:
@@ -1239,7 +1248,18 @@ class Parser:
                     if f2:
                         self.consume()
                         field_path.append(f2.value)
+                
+                # Namespaced function call: package's function with ...
+                if self.peek() and self.peek().value == "with":
+                    args = self._parse_args()
+                    return FunctionCall(FieldGet(tok.value, field_path), args)
+                
                 return FieldGet(tok.value, field_path)
+
+            # Function call: function with ...
+            if self.peek() and self.peek().value == "with":
+                args = self._parse_args()
+                return FunctionCall(Identifier(tok.value), args)
 
             return Identifier(tok.value)
 
@@ -1249,8 +1269,17 @@ class Parser:
 
         elif tok.type == "VERB":
             verb_val = tok.value
-            saved_pos = self.pos
             self.consume()
+            
+            # Function call: verb with ...
+            if self.peek() and self.peek().value == "with":
+                args = self._parse_args()
+                return FunctionCall(Identifier(verb_val), args)
+            
+            # Legacy method call logic: verb of object
+            saved_pos = self.pos - 1 # account for the consumed verb
+            self.pos = saved_pos
+            self.consume() # consume the verb again in the legacy logic or just re-integrate
             
             method_words = [verb_val]
             while self.peek() and self.peek().value != "of" and self.peek().type not in ("PUNCTUATION", "CONNECTOR"):
@@ -1263,6 +1292,7 @@ class Parser:
                 return MethodCall(obj_name, method_name, [])
                 
             self.pos = saved_pos
+            self.consume() # consume the verb finally
             return Identifier(tok.value)
 
         raise ParserError(f"Expected expression, got {tok.type} '{tok.value}'")

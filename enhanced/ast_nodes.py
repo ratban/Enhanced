@@ -472,8 +472,10 @@ class PublishPackage(ASTNode):
     def __init__(self):
         super().__init__()
 
-class CleanPackages(ASTNode):
-    def __init__(self):
+class FunctionCall(ASTNode):
+    def __init__(self, target, args):
         super().__init__()
+        self.target = target  # Can be an Identifier or FieldGet
+        self.args = args      # list of ASTNode
 
 
