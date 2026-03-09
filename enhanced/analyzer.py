@@ -373,15 +373,9 @@ class SemanticAnalyzer:
     # --- Phase XIII: Package Manager Visitors ---
     def visit_UsePackage(self, node):
         # Record that the package is being used.
-        # In a real compiler, we would load the package's symbols here.
-        # For simulation, we'll add some dummy symbols if the package is "math".
         pkg_name = node.package_name
         if pkg_name not in self.package_registry:
             self.package_registry[pkg_name] = {}
-        
-        # If it's the "math" package, add a dummy "add" function.
-        if pkg_name == "math":
-            self.package_registry[pkg_name]["add"] = {"type": "int", "kind": "function"}
         
         # Add the package name to the symbol table as a namespace
         self.symtab.define(pkg_name, "package", node.line)

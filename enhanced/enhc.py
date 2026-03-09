@@ -45,7 +45,8 @@ def main():
             pkg_name = args.extra[1]
             print(f"→ Getting the '{pkg_name}' package...")
             # Simulated Registry logic
-            registry_path = os.path.join(os.getcwd(), "Registry")
+            # Registry is at the project root
+            registry_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Registry")
             packages_path = os.path.join(os.getcwd(), "enhanced_packages")
             if not os.path.exists(packages_path):
                 os.makedirs(packages_path)
@@ -59,7 +60,7 @@ def main():
                 shutil.copytree(src, dst)
                 print(f"[OK] Package '{pkg_name}' installed to enhanced_packages/")
             else:
-                print(f"[Error] Package '{pkg_name}' not found in Registry")
+                print(f"[Error] Package '{pkg_name}' not found in Registry at {registry_path}")
             sys.exit(0)
 
     if args.command == "publish":
