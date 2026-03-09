@@ -453,35 +453,43 @@ class Parser:
         raise ParserError(f"I don\'t understand \'{tok.value}\' \u2014 did you mean something else?")
     def _parse_use(self):
         self.expect_val("KEYWORD", "the", "Expected 'the' after 'use'")
-        package_name = self.expect_type("LITERAL_STRING", "Expected package name").value
-
+        # It could be use the "pkg" package or use the "mod" from the "pkg" package
+        name_tok = self.expect_type("LITERAL_STRING", "Expected package or module name")
+        name1 = name_tok.value
+        
         module_name = None
+        package_name = None
         version = None
         source = None
 
         if self.match_val("KEYWORD", "package"):
-            # use the "package_name" package version "1.0.0"
+            package_name = name1
             if self.match_val("KEYWORD", "version"):
                 version = self.expect_type("LITERAL_STRING", "Expected version string").value
-            if self.match_val("KEYWORD", "from"):
+            if self.match_val("CONNECTOR", "from"):
                 source = self.expect_type("LITERAL_STRING", "Expected source string").value
-        elif self.match_val("KEYWORD", "from"):
-            # use the "module" from the "package" package
-            module_name = package_name # The first string was the module name
+        elif self.match_val("CONNECTOR", "from"):
+            module_name = name1
             self.expect_val("KEYWORD", "the", "Expected 'the' after 'from'")
             package_name = self.expect_type("LITERAL_STRING", "Expected package name").value
             self.expect_val("KEYWORD", "package", "Expected 'package' after package name")
             if self.match_val("KEYWORD", "version"):
                 version = self.expect_type("LITERAL_STRING", "Expected version string").value
-            if self.match_val("KEYWORD", "from"):
+            if self.match_val("CONNECTOR", "from"):
                 source = self.expect_type("LITERAL_STRING", "Expected source string").value
         else:
-            raise ParserError("Expected 'package' or 'from' after 'use the [package_name]'")
+            raise ParserError("Expected 'package' or 'from' after 'use the [name]'")
         
         from ast_nodes import UsePackage
         return UsePackage(package_name, module_name, version, source)
 
     def _parse_get_package(self):
+        # enhc get the [name] package
+        # Actually the prompt says "enhc get the [name] package" but this is for CLI.
+        # Inside the language, it might be slightly different or we parse it as a command?
+        # The USER_REQUEST says "Add package management commands to enhc.py", 
+        # but also "PART 1: use the [package_name] package."
+        # If the compiler parses "get the math package", it might be a compiler-level instruction.
         self.expect_val("KEYWORD", "the", "Expected 'the' after 'get'")
         package_name = self.expect_type("IDENTIFIER", "Expected package name").value
         self.expect_val("KEYWORD", "package", "Expected 'package' after package name")
@@ -493,6 +501,22 @@ class Parser:
         return PublishPackage()
 
     def _parse_clean(self):
+        # check if it's "clean" or "clean the packages"
+        # The REQUEST says "enhc clean -> Removes the enhanced_packages/ folder"
+        # and "enhc get the [name] package".
+        # If these are just CLI commands, maybe they shouldn't be in the language parser?
+        # But Phase XIII PART 3 says "Add package management commands to enhc.py".
+        # However, Phase 1 says "Add new English patterns to the compiler: use the [package_name] package."
+        # It DOES NOT say to add "get the package" to the language, only to the CLI.
+        # So I will remove get/publish/clean from the parser if they are ONLY for the CLI.
+        # Re-reading: "PART 3 — THE CLI INTERFACE (enhc pkg)".
+        # "enhc get the [name] package".
+        # This confirms they are CLI commands.
+        # But wait, looking at my view_file of parser.py, someone ALREADY added them!
+        # Line 109: elif self.match_val("VERB", "get"): return self._parse_get_package()
+        # This seems redundant if they are CLI commands, but maybe they want them in both?
+        # I'll stick to what the user requested: CLI support in enhc.py, "use" support in compiler.
+        # I'll keep the parser as is for now if it doesn't hurt, but "use" is the main one.
         from ast_nodes import CleanPackages
         return CleanPackages()
 
